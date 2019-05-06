@@ -28,12 +28,13 @@ namespace ScheduleNS
         // int id|DateTime(Od)|DateTime(Do)
         public static Udalost? UdalostZeStringu(string s)
         {
+            CultureInfo czechCI = CultureInfo.CreateSpecificCulture("cs-CZ");
             Udalost u = new Udalost();
             string[] rec = s.Split('|');
             if (int.TryParse(rec[0], out u.Id) &&
-                DateTime.TryParse(rec[2]+ " " + rec[3], CultureInfo.CreateSpecificCulture("cs-CZ"), 
+                DateTime.TryParse(rec[2]+ " " + rec[3], czechCI, 
                     DateTimeStyles.None, out u.interval.Od) &&
-                DateTime.TryParse(rec[4]+ " " + rec[5], CultureInfo.CreateSpecificCulture("cs-CZ"), 
+                DateTime.TryParse(rec[4]+ " " + rec[5], czechCI, 
                     DateTimeStyles.None, out u.interval.Do))
                 return u;
             else
@@ -141,10 +142,21 @@ namespace ScheduleNS
 
         static void Main(string[] args)
         {
+            CultureInfo czechCI = CultureInfo.CreateSpecificCulture("cs-CZ");
+            Console.WriteLine("Napiš indexy účastníků oddělených čárkou.");
             int[] ucastnici = Udalost.NactiUcastniky(Console.ReadLine());
+            string[] UdalostiStrArr = File.ReadAllLines("ScheduleData.txt");
 
-            string[] UdalostiStrArr = File.ReadAllLines("data.txt");
-            
+            Interval volnyBlok = VolnyBlokV1Dnu(
+                Udalost.NactiUdalosti(ucastnici, UdalostiStrArr),
+                TimeSpan.FromMinutes(60),  // delka schuze
+                new DateTime(2019, 4, 10, 7, 0, 0), // nejčasnější počátek schůze
+                new DateTime(2019, 4, 10, 18, 0, 0)); // nejpozdnější konec schůze
+
+            Console.WriteLine("Možná schůzka od {0} do {1}",
+                volnyBlok.Od.ToString(czechCI), volnyBlok.Do.ToString(czechCI));
+
+            Console.ReadLine();
         }
     }
 }
